@@ -97,15 +97,41 @@
 
                     </thead>
                     <tbody>
-                      <tr class="bg-white border-b" v-for="row in headers" :key="row">
+                      <tr class="bg-white border-b" v-for="(row, index) in headers" :key="row">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">matched</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ row }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">columns</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 select">
-                          <select v-model="selectedColumn" @change="addColumn">
-                            <option v-for="column in remainingColumns" :key="column" :value="column">{{ column }}
+                        <td class="px-14 py-4 whitespace-nowrap text-sm font-medium text-gray-900 select">
+                          <pre>
+                           selectedAttributesModelValue {{  selectedAttributesModelValue  }}
+                          </pre>
+                          <!-- <pre>
+                            attributes {{ notSelectedAttributes }}
+                          </pre> -->
+                          <select 
+                            v-model="selectedAttributesModelValue[index]" 
+                            @change="assignAttributeToColumn(index, selectedAttributesModelValue[index])"
+                            :key="row"
+                          >
+                            <option 
+                              v-for="attribute in notSelectedAttributes" 
+                              :key="attribute.name" 
+                              :value="attribute.indexValue"
+                              :disabled="attribute.mappedColumnIndex !== null"
+                            >
+                              {{ attribute.name }} {{ attribute.indexValue }}
                             </option>
                           </select>
+                          <template
+                            v-if="selectedAttributesModelValue[index] !== null"
+                          >
+                            <span
+                              class="cursor-pointer ml-1"
+                              @click="unSelect(index, selectedAttributesModelValue[index])"
+                            >
+                              clear
+                            </span>
+                          </template>
                         </td>
                       </tr>
 
@@ -169,67 +195,81 @@ import { useDropzone } from "vue3-dropzone";
 
 export default {
   setup() {
-    // const input = ref(null)
-    const page2Headers = ['MATCHED', 'COLUMN FROM FILE', 'COLUMN VALUES FROM FILE', 'PROSPECT ATTRIBUTES']
-    let csvData = ref(null)
-    let mappingObj = ref({});
-    let headers = ref([])
-    const rows = ref([])
-    const page = ref(1)
-    const selectedColumns = ref([]);
-    const selectedColumn = ref(null);
-    // const columnHeader = reactive({
-    //   'Unique Id': [],
-    //   Type: [],
-    //   Make: [],
-    //   Model: [],
-    //   Year: [],
-    //   Color: [],
-    //   Condition: [],
-    //   Case: [],
-    //   Price: [],
-    //   Description: [],
-    //   Picture1: [],
-    //   Picture2: [],
-    //   Picture3: [],
-    //   Picture4: [],
-    //   Picture5: [],
-    //   Picture6: [],
-    //   'Dealer Key': [],
-    //   'Dealer Notes': [],
-    //   'Offsite Link #1 Label': [],
-    //   'Offsite Link #1 Url': [],
-    //   'Offsite Link #2 Label': [],
-    //   'Offsite Link #2 Url': []
-    // })
+    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
 
-    const columnHeader = reactive({
-      'Unique Id': [],
-      Type: [],
-      Make: [],
-      Model: [],
-      Year: [],
-      Color: [],
-      Condition: [],
-      Case: [],
-      Price: [],
-      Description: [],
-      Picture1: [],
-    })
-    const columns = [
-      'Unique Id',
-      'Type',
-      'Make',
-      'Model',
-      'Year',
-      'Color',
-      'Condition',
-      'Case',
-      'Price',
-      'Description',
-      'Picture1',
-      'Picture2',
-    ];
+    const page2Headers = ['MATCHED', 'COLUMN FROM FILE', 'COLUMN VALUES FROM FILE', 'PROSPECT ATTRIBUTES'];
+    let csvData = ref(null);
+    let selectedAttributesModelValue = ref({});
+    let headers = ref([]);
+    const rows = ref([]);
+    const page = ref(1);
+  
+    const attributes = reactive([
+      {
+        name: 'Unique Id',
+        indexValue: 0,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Type',
+        indexValue: 1,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Make',
+        indexValue: 2,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Model',
+        indexValue: 3,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Year',
+        indexValue: 4,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Color',
+        indexValue: 5,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Condition',
+        indexValue: 6,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Case',
+        indexValue: 7,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Price',
+        indexValue: 8,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Description',
+        indexValue: 9,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Picture1',
+        indexValue: 10,
+        mappedColumnIndex: null
+      },
+      {
+        name: 'Picture2',
+        indexValue: 11,
+        mappedColumnIndex: null
+      }
+    ]);
+
+    const notSelectedAttributes  = computed(() => {
+      return attributes;
+    });
 
     function changePage() {
       // Increment the value of page
@@ -240,54 +280,72 @@ export default {
       }
     }
 
-    function onDrop(acceptFiles, rejectReasons) {
+    function onDrop(acceptFiles) {
       const file = acceptFiles[0];
-      // console.log(file);
       const parseFile = async (file) => {
 
-        // const file = input.value.files[0]
         const reader = new FileReader()
         reader.readAsText(file)
         reader.onload = () => {
-          const data = reader.result
-          const parsedData = Papa.parse(data)
-          csvData = parsedData.data
-          console.log("csv datta table", csvData)
-          headers.value = parsedData.data[0]
-          rows.value = parsedData.data.slice(1, 5)
+          const data = reader.result;
+          const parsedData = Papa.parse(data);
+
+          csvData.value = parsedData.data;
+
+          //This is used to display the header values on the mapping page
+          headers.value = parsedData.data[0];
+
+          //This is used to list out the other rows apart from the header row on the preview page
+          rows.value = parsedData.data.slice(1, 5);
+
+          // console.log('csv data', csvData);
+          // console.log('header', headers.value);
+          // console.log('rows', rows.value);
         }
       }
       parseFile(file);
-
-      console.log("csvData agter file parse:", csvData);
     }
 
     const options = reactive({
       multiple: false,
       onDrop,
       accept: '.jpg',
-    })
-    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
-
+    });
 
     function mapColumns() {
+      //Move to the next conditionally rendered view (Todo: Refactor later)
       page.value++;
-      let arr = csvData
-      // console.log("the csv array:", arr);
-      let headersLen = arr[0].length
-      for (let i = 0; i < headersLen; i++) {
-        mappingObj[i] = [];
+
+      // let arr = csvData;
+
+      for (let index = 0; index < headers.value.length; index++) {
+        selectedAttributesModelValue.value[index] = null;
       }
-      for (let i = 0; i < arr.length; i++) {
-        for (let j = 0; j < arr[i].length; j++) {
-          mappingObj[j].push(arr[i][j]);
-        }
-      }
-      console.log("Mapped this: ", csvData[0]);
-      return mappingObj
+
+      // console.log(mappingObj, 'mapping object');
+
+      // for (let i = 0; i < arr.length; i++) {
+      //   for (let j = 0; j < arr[i].length; j++) {
+      //     selectedAttributesModelValue[j].push(arr[i][j]);
+      //   }
+      // }
+      // console.log("Mapped this: ", csvData[0]);
     }
-    function addColumn() {
-      selectedColumns.value.push(selectedColumn.value);
+    function assignAttributeToColumn(columnToBeMappedRowIndex, selectedAttributeIndex) {
+      console.log(selectedAttributeIndex, 'attri index')
+      attributes[selectedAttributeIndex].mappedColumnIndex = columnToBeMappedRowIndex;
+      // console.log(attributes, 'atrribute');
+      console.log(selectedAttributesModelValue.value, 'model value');
+    }
+
+    function unSelect(selectedAttributeIndex, attr){
+      attributes[attr].mappedColumnIndex = null;
+      // console.log(attributes, 'attribute');
+      selectedAttributesModelValue.value[selectedAttributeIndex] = null;
+      // console.log(selectedAttributesModelValue.value, 'model value');
+      // console.log(selectedAttributeIndex, 'attri index')
+
+
     }
 
     return {
@@ -298,14 +356,16 @@ export default {
       page,
       changePage,
       mapColumns,
-      mappingObj,
       csvData,
-      columnHeader,
       page2Headers,
       get remainingColumns() {
         return columns.filter((column) => !selectedColumns.value.includes(column));
       },
-      ...rest,
+      assignAttributeToColumn,
+      unSelect,
+      notSelectedAttributes,
+      selectedAttributesModelValue,
+      ...rest
     }
   }
 }
