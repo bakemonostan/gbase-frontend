@@ -102,33 +102,22 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ row }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">columns</td>
                         <td class="px-14 py-4 whitespace-nowrap text-sm font-medium text-gray-900 select">
-                          <pre>
+                          <!-- <pre>
                            selectedAttributesModelValue {{  selectedAttributesModelValue  }}
-                          </pre>
+                          </pre> -->
                           <!-- <pre>
                             attributes {{ notSelectedAttributes }}
                           </pre> -->
-                          <select 
-                            v-model="selectedAttributesModelValue[index]" 
-                            @change="assignAttributeToColumn(index, selectedAttributesModelValue[index])"
-                            :key="row"
-                          >
-                            <option 
-                              v-for="attribute in notSelectedAttributes" 
-                              :key="attribute.name" 
-                              :value="attribute.indexValue"
-                              :disabled="attribute.mappedColumnIndex !== null"
-                            >
-                              {{ attribute.name }} {{ attribute.indexValue }}
+                          <select v-model="selectedAttributesModelValue[index]"
+                            @change="assignAttributeToColumn(index, selectedAttributesModelValue[index])" :key="row">
+                            <option v-for="attribute in notSelectedAttributes" :key="attribute.name"
+                              :value="attribute.indexValue" :disabled="attribute.mappedColumnIndex !== null">
+                              {{ attribute.name }}
                             </option>
                           </select>
-                          <template
-                            v-if="selectedAttributesModelValue[index] !== null"
-                          >
-                            <span
-                              class="cursor-pointer ml-1"
-                              @click="unSelect(index, selectedAttributesModelValue[index])"
-                            >
+                          <template v-if="selectedAttributesModelValue[index] !== null">
+                            <span class="cursor-pointer ml-1"
+                              @click="unSelect(index, selectedAttributesModelValue[index])">
                               clear
                             </span>
                           </template>
@@ -145,9 +134,40 @@
               <button @click="mapColumns" class="border border-2 bg-gray-100 p-5 mx-auto my-2">Next</button>
             </div>
           </div>
-
-
         </div>
+        <template v-if="page == 3">
+          <div class="overflow-x-auto sm:mx-0.5 lg:mx-0.5">
+            <div class="py-2 inline-block min-w-full sm:px-6 lg:px-8">
+              <div class="overflow-hidden">
+                <table class="min-w-full">
+                  <thead class="bg-gray-100 border-b">
+                    <tr>
+                      <th 
+                        scope="col" 
+                        class="text-sm font-medium text-gray-900 px-6 py-4 text-left"
+                        v-for="col in chosenColumns"
+                        :key="col.indexValue"
+                      >
+                        {{ col.name }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="bg-white border-b" v-for="(r, index) in finalCsv" :key="index">
+                        <td 
+                          class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+                          v-for="c in r"
+                          :key="c"
+                        >
+                          {{c}}
+                        </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -162,8 +182,8 @@
             <table class="min-w-full">
               <thead class="bg-gray-100 border-b">
                 <tr>
-                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left"
-                    v-for="header in headers" :key="header">{{ header }}</th>
+                  <th scope="col" class="text-sm font-medium text-gray-900 px-6 py-4 text-left" v-for="header in headers"
+                    :key="header">{{ header }}</th>
                 </tr>
 
               </thead>
@@ -184,14 +204,13 @@
       </div>
     </div>
 
-
   </div>
 </template>
 
 <script>
-import { ref, computed, watch, reactive } from 'vue'
-import Papa from 'papaparse'
-import { useDropzone } from "vue3-dropzone";
+import { ref, computed, reactive } from 'vue';
+import { useDropzone } from 'vue3-dropzone';
+import Papa from 'papaparse';
 
 export default {
   setup() {
@@ -203,7 +222,16 @@ export default {
     let headers = ref([]);
     const rows = ref([]);
     const page = ref(1);
-  
+    const finalCsv = ref([]);
+
+    const chosenColumns = computed(() => {
+      return attributes.filter(attribute => attribute.mappedColumnIndex !== null);
+    });
+
+    const chosenColumnsMapIndex = computed(() => {
+      return chosenColumns.value.map(col => col.mappedColumnIndex);
+    });
+
     const attributes = reactive([
       {
         name: 'Unique Id',
@@ -267,7 +295,7 @@ export default {
       }
     ]);
 
-    const notSelectedAttributes  = computed(() => {
+    const notSelectedAttributes = computed(() => {
       return attributes;
     });
 
@@ -315,37 +343,39 @@ export default {
     function mapColumns() {
       //Move to the next conditionally rendered view (Todo: Refactor later)
       page.value++;
+      if (page.value === 2) {
+        for (let index = 0; index < headers.value.length; index++) {
+          selectedAttributesModelValue.value[index] = null;
+        }
+      } else if (page.value === 3) {
+        //do page three stuff
 
-      // let arr = csvData;
+        const finalCsvData = [];
 
-      for (let index = 0; index < headers.value.length; index++) {
-        selectedAttributesModelValue.value[index] = null;
+        for(let index = 0; index < csvData.value.length; index++){
+
+          let cc = [];
+          for(let deepIndex = 0; deepIndex < csvData.value[index].length; deepIndex++){
+
+            if(chosenColumnsMapIndex.value.includes(deepIndex)){
+              cc.push(csvData.value[index][deepIndex]);
+            }
+          }
+
+          finalCsvData.push(cc);
+        }
+
+        finalCsv.value = finalCsvData;
       }
-
-      // console.log(mappingObj, 'mapping object');
-
-      // for (let i = 0; i < arr.length; i++) {
-      //   for (let j = 0; j < arr[i].length; j++) {
-      //     selectedAttributesModelValue[j].push(arr[i][j]);
-      //   }
-      // }
-      // console.log("Mapped this: ", csvData[0]);
     }
+
     function assignAttributeToColumn(columnToBeMappedRowIndex, selectedAttributeIndex) {
-      console.log(selectedAttributeIndex, 'attri index')
       attributes[selectedAttributeIndex].mappedColumnIndex = columnToBeMappedRowIndex;
-      // console.log(attributes, 'atrribute');
-      console.log(selectedAttributesModelValue.value, 'model value');
     }
 
-    function unSelect(selectedAttributeIndex, attr){
+    function unSelect(selectedAttributeIndex, attr) {
       attributes[attr].mappedColumnIndex = null;
-      // console.log(attributes, 'attribute');
       selectedAttributesModelValue.value[selectedAttributeIndex] = null;
-      // console.log(selectedAttributesModelValue.value, 'model value');
-      // console.log(selectedAttributeIndex, 'attri index')
-
-
     }
 
     return {
@@ -365,6 +395,8 @@ export default {
       unSelect,
       notSelectedAttributes,
       selectedAttributesModelValue,
+      finalCsv,
+      chosenColumns,
       ...rest
     }
   }
