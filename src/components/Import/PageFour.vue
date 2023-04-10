@@ -33,3 +33,83 @@
         "Row2Column14 (index 13)"
     ],
 }
+
+
+
+
+{
+    headers: [
+    {
+        name: 'Unique Id',
+        mappedColumnIndex: 0
+      },
+      {
+        name: 'Type',
+        mappedColumnIndex: 1
+      },
+    ]
+    values: 
+    [
+        [
+            "Row1Column17",
+            "Row1Column18"
+        ],
+        [
+            "Row2Column17",
+            "Row2Column18"
+        ],
+        [
+            "",
+            ""
+        ],
+        [
+            "",
+            ""
+        ],
+        [
+            "",
+            ""
+        ],
+        [
+            "",
+            ""
+        ],
+        [
+            "",
+            "Row7Column18"
+        ],
+        []
+    ]
+}
+
+[
+    rowsArray[
+        "Row1Column17",
+        "Row1Column18"
+    ],
+    [
+        "Row2Column17",
+        "Row2Column18"
+    ],
+    [
+        "",
+        ""
+    ],
+    [
+        "",
+        ""
+    ],
+    [
+        "",
+        ""
+    ],
+    [
+        "",
+        ""
+    ],
+    [
+        "",
+        "Row7Column18"
+    ],
+    []
+]

@@ -159,7 +159,10 @@
                           v-for="c in r"
                           :key="c"
                         >
-                          {{c}}
+                          <pre>{{ finalCsv }}</pre>
+                          <span :class="{'text-red-700': true}">
+                            {{c}}
+                          </span>
                         </td>
                     </tr>
                   </tbody>
@@ -235,63 +238,112 @@ export default {
     const attributes = reactive([
       {
         name: 'Unique Id',
+        key: 'unique_id',
         indexValue: 0,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          if(typeof columnValue !== 'string') return false;
+          return true;
+        }
       },
       {
         name: 'Type',
+        key: 'type',
         indexValue: 1,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Make',
+        key: 'make',
         indexValue: 2,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Model',
+        key: 'model',
         indexValue: 3,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Year',
+        key: 'year',
         indexValue: 4,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Color',
+        key: 'color',
         indexValue: 5,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Condition',
+        key: 'condition',
         indexValue: 6,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Case',
+        key: 'case',
         indexValue: 7,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Price',
+        key: 'price',
         indexValue: 8,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Description',
+        key: 'description',
         indexValue: 9,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Picture1',
+        key: 'picture1',
         indexValue: 10,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       },
       {
         name: 'Picture2',
+        key: 'picture2',
         indexValue: 11,
-        mappedColumnIndex: null
+        mappedColumnIndex: null,
+        validate(columnValue) {
+          return true;
+        }
       }
     ]);
 
@@ -359,6 +411,8 @@ export default {
 
             if(chosenColumnsMapIndex.value.includes(deepIndex)){
               cc.push(csvData.value[index][deepIndex]);
+              // cc.push({columncsvData.value[index][deepIndex]);
+
             }
           }
 
@@ -366,6 +420,7 @@ export default {
         }
 
         finalCsv.value = finalCsvData;
+        console.log(chosenColumns)
       }
     }
 
