@@ -156,13 +156,74 @@
                     <tr class="bg-white border-b" v-for="(r, index) in finalCsv" :key="index">
                         <td 
                           class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                          v-for="c in r"
+                          v-for="(c, deepIndex) in r"
                           :key="c"
                         >
-                          <pre>{{ finalCsv }}</pre>
-                          <span :class="{'text-red-700': true}">
-                            {{c}}
-                          </span>
+                          <input
+                            v-if="nonDropdownData.includes(c.key)" 
+                            v-model="finalCsv[index][deepIndex].value"
+                            type="text" 
+                            class="border px-8 py-3"
+                            :class="{ 'border-rose-700': hasError(c.indexValue, c.value) }"
+                          />
+
+                          <template v-if="c.key == 'type'">
+                            <div>
+                              <select 
+                                v-model="finalCsv[index][deepIndex].value"
+                                class="h-7"
+                                :class="{ 'has-error': hasError(c.indexValue, c.value) }"
+                              >
+                                <option
+                                  v-for="(option, optionIndex) in attributes[c.indexValue].options"
+                                  :key="optionIndex"
+                                  class="h-3"
+                                >
+                                {{ option }}
+                                </option>
+                              </select>
+                            </div>
+                            Current value: {{  c.value  }}
+                          </template>
+
+                          <template v-if="c.key == 'condition'">
+                            <div>
+                              <select 
+                                v-model="finalCsv[index][deepIndex].value"
+                                class="h-7"
+                                :class="{ 'has-error': hasError(c.indexValue, c.value) }"
+                              >
+                                <option
+                                  v-for="(option, optionIndex) in attributes[c.indexValue].options"
+                                  :key="optionIndex"
+                                  class="h-3"
+                                >
+                                {{ option }}
+                                </option>
+                              </select>
+                            </div>
+                            Current value: {{  c.value  }}
+                          </template>
+
+
+                          <template v-if="c.key == 'case'">
+                            <div>
+                              <select 
+                                v-model="finalCsv[index][deepIndex].value"
+                                class="h-7"
+                                :class="{ 'has-error': hasError(c.indexValue, c.value) }"
+                              >
+                                <option
+                                  v-for="(option, optionIndex) in attributes[c.indexValue].options"
+                                  :key="optionIndex"
+                                  class="h-3"
+                                >
+                                {{ option }}
+                                </option>
+                              </select>
+                            </div>
+                            Current value: {{  c.value  }}
+                          </template>
                         </td>
                     </tr>
                   </tbody>
@@ -227,6 +288,7 @@ export default {
     const page = ref(1);
     const finalCsv = ref([]);
 
+  
     const chosenColumns = computed(() => {
       return attributes.filter(attribute => attribute.mappedColumnIndex !== null);
     });
@@ -234,6 +296,18 @@ export default {
     const chosenColumnsMapIndex = computed(() => {
       return chosenColumns.value.map(col => col.mappedColumnIndex);
     });
+
+    const nonDropdownData = reactive([
+      'unique_id',
+      'make',
+      'model',
+      'year',
+      'color',
+      'price',
+      'description',
+      'picture1',
+      'picture2'
+    ]);
 
     const attributes = reactive([
       {
@@ -251,8 +325,55 @@ export default {
         key: 'type',
         indexValue: 1,
         mappedColumnIndex: null,
+        options: [
+        "Guitars : Electric Solid Body",
+        "Guitars : Electric Semi-Hollow Body",
+        "Guitars : 12 String Electric &amp; Acoustic",
+        "Guitars : Acoustic",
+        "Guitars : Flattop Electric &amp; Acoustic",
+        "Guitars : Archtop Electric &amp; Acoustic",
+        "Guitars : Classical &amp; Nylon",
+        "Guitars : 7 String",
+        "Guitars : Lap, Pedal &amp; Table", 
+        "Guitars : Resonator",
+        "Guitars : Tenor",
+        "Guitars : Bass",
+        "Guitars : Upright Bass",
+        "Guitars : Hollow Body",
+        "Amps &amp; Preamps",
+        "Amp Parts",
+        "Amp Speakers",
+        "Amp Tubes",
+        "Speaker Cabinets",
+        "Drums &amp; Percussion",
+        "Bass Speaker Cabinets",
+        "Bass Amps",
+        "Band &amp; Orchestra",
+        "Banjos",
+        "Effects",
+        "Mandolin Family",
+        "P.A. &amp; Sound Reinforcement",
+        "Pickups",
+        "Recording Equipment",
+        "Ukulele &amp; Banjo Ukes",
+        "Accessories",
+        "Apparel",
+        "Books, Videos &amp; Instructional",
+        "Close Out Items",
+        "Guitar Parts",
+        "High End Audio",
+        "Karaoke",
+        "Miscellaneous",
+        "Music Novelities",
+        "Software",
+        "Keyboards",
+        "Cases"
+        ],
         validate(columnValue) {
-          return true;
+          if(this.options.includes(columnValue)){
+            return true;
+          }
+          return false;
         }
       },
       {
@@ -261,7 +382,8 @@ export default {
         indexValue: 2,
         mappedColumnIndex: null,
         validate(columnValue) {
-          return true;
+          if(!isNaN(columnValue) && !isNaN(parseFloat(columnValue))) return true;
+          return false;
         }
       },
       {
@@ -295,18 +417,41 @@ export default {
         name: 'Condition',
         key: 'condition',
         indexValue: 6,
+        options: [
+          "Mint",
+          "Near Mint",
+          "Excellent",
+          "Very Good",
+          "Good",
+          "Fair",
+          "Poor"
+        ],
         mappedColumnIndex: null,
         validate(columnValue) {
-          return true;
+          if(this.options.includes(columnValue)){
+            return true;
+          }
+          return false;
         }
       },
       {
         name: 'Case',
         key: 'case',
         indexValue: 7,
+        options: [
+          "None",
+          "Hard",
+          "Soft",
+          "GigBag",
+          "Original Hard",
+          "Original Soft"
+        ],
         mappedColumnIndex: null,
         validate(columnValue) {
-          return true;
+          if(this.options.includes(columnValue)){
+            return true;
+          }
+          return false;
         }
       },
       {
@@ -347,6 +492,28 @@ export default {
       }
     ]);
 
+  //   get() {
+  //   return firstName.value + ' ' + lastName.value
+  // },
+  // // setter
+  // set(newValue) {
+  //   // Note: we are using destructuring assignment syntax here.
+  //   [firstName.value, lastName.value] = newValue.split(' ')
+  // }
+
+  // const hasError = computed({
+  //   get(){
+  //     return !attributes[index].validate(columnValue)
+  //   },
+  //   set(newValue){
+
+  //   }
+  // });
+    
+    const hasError = (index, columnValue) => {
+      return !attributes[index].validate(columnValue)
+    };
+
     const notSelectedAttributes = computed(() => {
       return attributes;
     });
@@ -369,6 +536,9 @@ export default {
         reader.onload = () => {
           const data = reader.result;
           const parsedData = Papa.parse(data);
+
+          // const blobss = new Blob([Papa.unparse(parsedData)], { type: 'text/csv;charset=utf-8;' });
+          // console.log(blobss.toString());
 
           csvData.value = parsedData.data;
 
@@ -400,8 +570,8 @@ export default {
           selectedAttributesModelValue.value[index] = null;
         }
       } else if (page.value === 3) {
-        //do page three stuff
 
+        //do page three stuff
         const finalCsvData = [];
 
         for(let index = 0; index < csvData.value.length; index++){
@@ -410,9 +580,11 @@ export default {
           for(let deepIndex = 0; deepIndex < csvData.value[index].length; deepIndex++){
 
             if(chosenColumnsMapIndex.value.includes(deepIndex)){
-              cc.push(csvData.value[index][deepIndex]);
-              // cc.push({columncsvData.value[index][deepIndex]);
-
+              cc.push({
+                key: chosenColumns.value[deepIndex].key,
+                indexValue: chosenColumns.value[deepIndex].indexValue,
+                value: csvData.value[index][deepIndex]
+              });
             }
           }
 
@@ -420,7 +592,7 @@ export default {
         }
 
         finalCsv.value = finalCsvData;
-        console.log(chosenColumns)
+        console.log(finalCsv.value);
       }
     }
 
@@ -452,12 +624,18 @@ export default {
       selectedAttributesModelValue,
       finalCsv,
       chosenColumns,
+      hasError,
+      nonDropdownData,
+      attributes,
       ...rest
     }
   }
 }
 </script>
 <style lang="scss" scoped>
+.has-error {
+  @apply border border-red-600;
+}
 *,
 *::before,
 *::after {
